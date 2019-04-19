@@ -44,6 +44,8 @@ type Config struct {
 
 	Timeout time.Duration
 	MaxIdle time.Duration
+
+	Callbacks NodeCallbacks
 }
 
 func (c *Config) Validate() error {
@@ -77,6 +79,7 @@ func NewNode(cnf *Config, joinNode *models.Node) (*Node, error) {
 		shutdownCh: make(chan struct{}),
 		cnf:        cnf,
 		storage:    NewMapStore(cnf.Hash),
+		callbacks: cnf.Callbacks,
 	}
 
 	var nID string
@@ -185,6 +188,13 @@ type Node struct {
 	tsMtx     sync.RWMutex
 
 	lastStablized time.Time
+
+	callbacks NodeCallbacks
+}
+
+type NodeCallbacks interface{
+	XSetCallback(node *Node, req *models.SetRequest)
+	XDeleteCallback(node *Node, req *models.DeleteRequest)
 }
 
 func (n *Node) hashKey(key string) ([]byte, error) {
@@ -628,6 +638,9 @@ func (n *Node) XSet(ctx context.Context, req *models.SetRequest) (*models.SetRes
 	defer n.stMtx.Unlock()
 	fmt.Println("setting key on ", n.Node.Addr, req.Key, req.Value)
 	err := n.storage.Set(req.Key, req.Value)
+	if n.callbacks != nil {
+		n.callbacks.XSetCallback(n, req)
+	}
 	return emptySetResponse, err
 }
 
@@ -635,6 +648,9 @@ func (n *Node) XDelete(ctx context.Context, req *models.DeleteRequest) (*models.
 	n.stMtx.Lock()
 	defer n.stMtx.Unlock()
 	err := n.storage.Delete(req.Key)
+	if n.callbacks != nil {
+		n.callbacks.XDeleteCallback(n, req)
+	}
 	return emptyDeleteResponse, err
 }
 
