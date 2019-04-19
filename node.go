@@ -3,7 +3,7 @@ package chord
 import (
 	"crypto/sha1"
 	"fmt"
-	"github.com/arriqaaq/chord/models"
+	"github.com/jwoglom/chord/models"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"hash"
