@@ -12,6 +12,7 @@ type Storage interface {
 	Set(string, string) error
 	Delete(string) error
 	Between([]byte, []byte) ([]*models.KV, error)
+	All() ([]*models.KV, error)
 	MDelete(...string) error
 }
 
@@ -69,6 +70,18 @@ func (a *mapStore) Between(from []byte, to []byte) ([]*models.KV, error) {
 			}
 			vals = append(vals, pair)
 		}
+	}
+	return vals, nil
+}
+
+func (a *mapStore) All() ([]*models.KV, error) {
+	var vals []*models.KV
+	for k, v := range a.data {
+		pair := &models.KV{
+			Key:   k,
+			Value: v,
+		}
+		vals = append(vals, pair)
 	}
 	return vals, nil
 }

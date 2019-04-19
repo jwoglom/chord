@@ -243,6 +243,9 @@ func (n *Node) Set(key, value string) error {
 func (n *Node) Delete(key string) error {
 	return n.delete(key)
 }
+func (n *Node) AllLocal() ([]*models.KV, error) {
+	return n.storage.All()
+}
 
 /*
 	Finds the node for the key
